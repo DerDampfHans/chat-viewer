@@ -1,0 +1,61 @@
+@import '~bootstrap/scss/bootstrap';
+@import '~@fortawesome/fontawesome-free/css/fontawesome.css';
+@import '~@fortawesome/fontawesome-free/css/solid.css';
+
+body {
+  overflow: hidden;
+}
+
+#chatMessages {
+  position: relative;
+  height: calc(100vh - 106px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#chatUsersList {
+  height: calc(100vh - 142px);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .author-img {
+    cursor: pointer;
+  }
+
+  .author-name {
+    cursor: pointer;
+  }
+}
+
+#chatUsersOrder {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  border-color: rgba(0, 0, 0, 0.125);
+}
+
+img.author-img {
+  width: 32px;
+  height: auto;
+}
+
+img.author-badge {
+  width: 16px;
+  height: auto;
+}
+
+img.emote {
+  height: 25px;
+  width: auto;
+}
+
+#authorModalImage {
+  width: 150px;
+  height: auto;
+
+  .author-badge {
+    height: 25px;
+    width: auto;
+  }
+}
