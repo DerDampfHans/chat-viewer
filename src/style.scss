@@ -11,6 +11,10 @@ body {
   height: calc(100vh - 106px);
   overflow-y: auto;
   overflow-x: hidden;
+
+  .author-img {
+    cursor: pointer;
+  }
 }
 
 #chatUsersList {

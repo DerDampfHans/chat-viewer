@@ -1,5 +1,6 @@
 const PACKAGE = require('./package.json');
 const BannerPlugin = require('webpack/lib/BannerPlugin');
+const DefinePlugin = require('webpack/lib/DefinePlugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlMinimizerPlugin = require('html-minimizer-webpack-plugin');
@@ -44,6 +45,11 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
     },
     plugins: [
+        // Pass current version number
+        new DefinePlugin({
+            __VERSION__: JSON.stringify(PACKAGE.version),
+        }),
+
         // Where the compiled SASS is saved to
         new MiniCssExtractPlugin({
             filename: 'css/main.css',

@@ -19,6 +19,16 @@ const highlightedAuthors: Array<String> = new Array<String>();
 let currentMessage: JQuery = null;
 let authorModal: BsModal = null;
 
+declare var __VERSION__: string;
+if (__VERSION__) {
+    const title: JQuery = jq('head > title');
+    title.text(`${title.text()} v${__VERSION__}`);
+    console.info(`Running version ${__VERSION__}...`);
+}
+
+/**
+ * Data structure in JSON file for messages.
+ */
 interface ChatEntry {
     message: string;
     message_id: string;
@@ -27,6 +37,9 @@ interface ChatEntry {
     emotes?: Array<ChatEmote>;
 }
 
+/**
+ * Data structure in JSON file for authors.
+ */
 interface ChatAuthor {
     id: string;
     name: string;
@@ -34,11 +47,17 @@ interface ChatAuthor {
     badges?: Array<ChatBadge>;
 }
 
+/**
+ * Data structure in JSON file for badges.
+ */
 interface ChatBadge {
     title: string;
     icons?: Array<ChatImage>;
 }
 
+/**
+ * Data structure in JSON file for emotes.
+ */
 interface ChatEmote {
     id: string;
     name: string;
@@ -46,6 +65,9 @@ interface ChatEmote {
     images?: Array<ChatImage>;
 }
 
+/**
+ * Data structure in JSON file for images.
+ */
 interface ChatImage {
     id: string;
     url: string;
@@ -53,11 +75,18 @@ interface ChatImage {
     width?: number;
 }
 
+/**
+ * Chat summary for an author.
+ */
 class AuthorSummary {
     author: ChatAuthor;
     messageCount: number = 0;
 }
 
+/**
+ * Show an accordion element.
+ * @param collapse Collapsable element to show.
+ */
 function accordionShow(collapse: JQuery) {
     const div: BsCollapse = BsCollapse.getOrCreateInstance(collapse[0]);
     if (div) {
@@ -68,6 +97,9 @@ function accordionShow(collapse: JQuery) {
     }
 }
 
+/**
+ * Clear chat view.
+ */
 function chatDisable(): void {
     highlightedAuthors.splice(0, highlightedAuthors.length);
     currentMessage = null;
@@ -79,6 +111,10 @@ function chatDisable(): void {
     accordionShow(collapseFile);
 }
 
+/**
+ * Load chat view
+ * @param json JSON chat data
+ */
 function chatLoad(json: string): void {
     let data: Array<ChatEntry>;
 
@@ -107,7 +143,12 @@ function chatLoad(json: string): void {
         const createdAt: JQuery = entry.find('.created-at').first();
         const message: JQuery = entry.find('.message').first();
 
-        authorImg.attr('src', (img != null) ? img.url : './img/unknown.png');
+        authorImg
+            .attr('src', (img != null) ? img.url : './img/unknown.png')
+            .on('click', function (event) {
+                event.preventDefault();
+                authorInfo(msg.author.id);
+            });
         authorName.text(msg.author.name);
         createdAt.text(new Date(msg.timestamp / 1000).toLocaleString());
 
@@ -139,6 +180,9 @@ function chatLoad(json: string): void {
     chatView.fadeIn();
 }
 
+/**
+ * Build list of authors.
+ */
 function buildAuthorList() {
     chatUsersList.html('');
     Array.from(authorSummary.values())
@@ -166,7 +210,7 @@ function buildAuthorList() {
                 .attr('src', (img != null) ? img.url : './img/unknown.png')
                 .on('click', function (event) {
                     event.preventDefault();
-                    authorInfo(summary.author);
+                    authorInfo(summary.author.id);
                 });
             authorName
                 .text(summary.author.name)
@@ -188,6 +232,11 @@ function buildAuthorList() {
         });
 }
 
+/**
+ * Select an image for a preferred size.
+ * @param images array of images
+ * @param preferredSize preferred size
+ */
 function getImage(images: Array<ChatImage>, preferredSize: number): ChatImage {
     let match: ChatImage = null;
     if (!images || images.length < 1) {
@@ -222,7 +271,17 @@ function getImage(images: Array<ChatImage>, preferredSize: number): ChatImage {
     return match;
 }
 
-function authorInfo(author: ChatAuthor): void {
+/**
+ * Show modal dialog with information about an author.
+ * @param authorId author ID
+ */
+function authorInfo(authorId: string): void {
+    if (!authorSummary.has(authorId)) {
+        console.error(`Author ${authorId} is unknown!`);
+        return;
+    }
+
+    const author: ChatAuthor = authorSummary.get(authorId).author;
     const img: ChatImage = getImage(author.images, 150);
 
     jq('#authorModalId').text(author.id);
@@ -249,9 +308,8 @@ function authorInfo(author: ChatAuthor): void {
                     .append(jq('<div>')
                         .addClass('me-2')
                         .text(badge.title))
-                    .append(jq('<img>')
+                    .append(jq('<img src="#" alt="">')
                         .attr('src', icon.url)
-                        .attr('alt', '')
                     )
                 );
             }
@@ -264,6 +322,11 @@ function authorInfo(author: ChatAuthor): void {
     authorModal.show();
 }
 
+/**
+ * Highlight messages of an author.
+ * @param authorId author ID
+ * @param highlighted true to enable highlighting for the author, false to disable highlighting for the author
+ */
 function authorHighlightMessages(authorId: string, highlighted: boolean): void {
     const index = highlightedAuthors.indexOf(authorId);
     const authorMessages: JQuery = jq('.chat-entry').filter((index: number, element: HTMLElement): boolean => {
@@ -283,6 +346,10 @@ function authorHighlightMessages(authorId: string, highlighted: boolean): void {
     }
 }
 
+/**
+ * Scroll to the next message of an author.
+ * @param authorId author ID
+ */
 function authorScrollToNextMessage(authorId: string): void {
     let currentMessageId: string = null;
 
@@ -337,6 +404,9 @@ function authorScrollToNextMessage(authorId: string): void {
     }, 1000, 'swing');
 }
 
+/**
+ * Load chat view, if a local file was selected.
+ */
 protocolFileInput.on('change', function (event) {
     event.preventDefault();
     //console.debug('File changed.');
@@ -364,6 +434,9 @@ protocolFileInput.on('change', function (event) {
     reader.readAsText(file, 'UTF-8');
 });
 
+/**
+ * Change order of authors.
+ */
 chatUsersOrder.on('change', function (event) {
     event.preventDefault();
     buildAuthorList();
